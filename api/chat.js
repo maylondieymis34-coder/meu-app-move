@@ -1,5 +1,6 @@
 export default async function handler(req, res) {
     if (req.method !== 'POST') return res.status(405).json({ error: 'Método não permitido' });
+    
     const { prompt, name } = req.body;
     const apiKey = process.env.GEMINI_API_KEY;
 
@@ -8,16 +9,22 @@ export default async function handler(req, res) {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                contents: [{ parts: [{ text: `Você é um mentor cristão. Usuário: ${name}. Responda curto com um versículo. Pergunta: ${prompt}` }] }]
+                contents: [{ 
+                    parts: [{ 
+                        text: `Você é um mentor cristão. Usuário: ${name}. Responda curto com um versículo. Pergunta: ${prompt}` 
+                    }] 
+                }]
             })
         });
 
         const data = await response.json();
-        // ESTA LINHA ABAIXO É A CORREÇÃO
-        const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || "Tive um problema na conexão. Tente novamente!";
         
+        // CORREÇÃO APLICADA ABAIXO PARA GARANTIR A RESPOSTA
+        const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || "Desculpe, tive um problema na conexão. Tente novamente!";
+
         res.status(200).json({ reply });
     } catch (error) {
-        res.status(500).json({ reply: "Erro no servidor." });
+        console.error("Erro no servidor:", error);
+        res.status(500).json({ reply: "Erro no servidor ao processar sua mensagem." });
     }
 }
